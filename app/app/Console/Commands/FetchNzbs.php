@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\DTO\ApiResponseItemCollection;
+use App\Models\ApiResponse;
+use App\Services\ApiService;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
+use Illuminate\Console\Command;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Log;
+
+#[Signature('app:fetch-nzbs')]
+#[Description('Fetch NZBs from the Newznab API and store the items for later processing')]
+class FetchNzbs extends Command
+{
+    /**
+     * Execute the console command.
+     */
+    public function handle(ApiService $apiService): void
+    {
+        /** @var array $urls */
+        $urls = config('laranab.newznab_apis');
+
+        foreach ($urls as $url) {
+            try {
+                $items = $apiService->fetchNzbs($url);
+            } catch (ConnectionException|\Exception $e) {
+                Log::error('Failed to fetch NZBs from ' . $url . ': ' . $e->getMessage());
+                continue;
+            }
+
+            ApiResponse::create([
+                'source' => $url,
+                'payload' => $items,
+            ]);
+
+            $this->info('API response stored');
+        }
+    }
+}

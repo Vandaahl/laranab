@@ -43,11 +43,29 @@ final readonly class ApiResponseItem
             pubDate: $data['pubDate'] ?? null,
             categories: $attributes['categories'],
             guid: $attributes['guid'],
-            imdbYear: (int) $attributes['imdbyear'] ?? null,
+            imdbYear: isset($attributes['imdbyear']) ? (int) $attributes['imdbyear'] : null,
             coverUrl: $attributes['coverurl'] ?? null,
             group: $attributes['group'] ?? null,
             nzb: $data['link'],
-            nfo: $attributes['info'] ?? null
+            nfo: $attributes['info'] ?? null,
         );
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'title' => $this->title,
+            'imdb' => $this->imdb,
+            'imdbTitle' => $this->imdbTitle,
+            'size' => $this->size,
+            'pubDate' => $this->pubDate,
+            'categories' => $this->categories,
+            'guid' => $this->guid,
+            'imdbYear' => $this->imdbYear,
+            'coverUrl' => $this->coverUrl,
+            'group' => $this->group,
+            'nzb' => $this->nzb,
+            'nfo' => $this->nfo,
+        ];
     }
 }
