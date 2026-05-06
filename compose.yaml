@@ -1,0 +1,49 @@
+# see https://edu.chainguard.dev/chainguard/migration/migrating-php/
+
+services:
+  app:
+    container_name: laranab
+    image: cgr.dev/chainguard/laravel:latest-dev
+    restart: unless-stopped
+    volumes:
+      - ./app:/app
+    environment:
+      - TZ=Europe/Amsterdam
+      - DB_CONNECTION=mariadb
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_DATABASE=${MARIADB_DATABASE}
+      - DB_USERNAME=${MARIADB_USER}
+      - DB_PASSWORD=${MARIADB_PASSWORD}
+    networks:
+      - wolfi
+
+  nginx:
+    container_name: laranab-nginx
+    image: cgr.dev/chainguard/nginx
+    restart: unless-stopped
+    volumes:
+      - ./app:/app
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "8000:8080"
+    networks:
+      - wolfi
+
+  mariadb:
+    container_name: laranab-mariadb
+    image: cgr.dev/chainguard/mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+    ports:
+      - 3306:3306
+    networks:
+      - wolfi
+
+networks:
+  wolfi:
+    driver: bridge
