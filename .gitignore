@@ -1,4 +1,4 @@
 .env
 .idea
-database/
+/db/
 .DS_Store
