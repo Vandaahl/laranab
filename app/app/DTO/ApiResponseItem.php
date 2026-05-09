@@ -2,6 +2,8 @@
 
 namespace App\DTO;
 
+use App\Services\ApiDataManipulator;
+
 final readonly class ApiResponseItem
 {
     public function __construct(
@@ -21,19 +23,7 @@ final readonly class ApiResponseItem
 
     public static function fromArray(array $data): self
     {
-        $attributes = collect($data['attr'] ?? [])
-            ->reduce(function ($carry, $item) {
-                $name = $item['@attributes']['name'];
-                $value = $item['@attributes']['value'];
-
-                if ($name === 'category') {
-                    $carry['categories'][] = $value;
-                } else {
-                    $carry[$name] = $value;
-                }
-
-                return $carry;
-            }, ['categories' => []]);
+        $attributes = ApiDataManipulator::flattenAttributes($data['attr']);
 
         return new self(
             title: $data['title'],

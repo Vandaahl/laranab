@@ -24,18 +24,7 @@ class ApiService
         /** @var array $itemData */
         $itemData = $data['channel']['item'];
 
-        // Filter out items with imdb=0000000 so only known releases are returned
-        $filtered = collect($itemData)
-            ->reject(function ($item) {
-                return collect($item['attr'] ?? [])
-                    ->contains(function ($attr) {
-                        return $attr['@attributes']['name'] === 'imdb'
-                            && $attr['@attributes']['value'] === '0000000';
-                    });
-            })
-        ->values()
-        ->all();
-
-        return $filtered;
+        // Filter out items with imdb=0000000 so only known releases are returned.
+        return ApiDataManipulator::filterItems('imdb', '0000000', $itemData);
     }
 }
