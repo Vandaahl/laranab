@@ -2,6 +2,7 @@
 
 use App\DTO\ApiResponseItemCollection;
 use App\Models\ApiResponse;
+use App\Services\ApiDataManipulator;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function ()
@@ -23,4 +24,11 @@ Route::get('/api/nzbs/test/read', function ()
         dump($item);
     }
     dd('read');
+});
+
+Route::get('/api/nzbs/test/filter', function () {
+    $apiResponse = ApiResponse::latest()->first()->payload;
+    dump(count($apiResponse) . ' unfiltered items');
+    $items = ApiDataManipulator::removeItemsByMissingAttribute('imdb', $apiResponse);
+    dd(count($items) . ' items after filtering out items that are missing imdb attribute');
 });
