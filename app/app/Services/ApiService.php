@@ -25,6 +25,8 @@ class ApiService
         $itemData = $data['channel']['item'];
 
         // Filter out items with imdb=0000000 so only known releases are returned.
-        return ApiDataManipulator::filterItems('imdb', '0000000', $itemData);
+        $items = ApiDataManipulator::removeItemsByAttributeValue('imdb', '0000000', $itemData);
+        // Also, filter out items that are missing the imdb attribute.
+        return ApiDataManipulator::removeItemsByMissingAttribute('imdb', $items);
     }
 }
