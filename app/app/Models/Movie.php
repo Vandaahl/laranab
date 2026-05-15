@@ -20,8 +20,7 @@ class Movie extends Model
         return $this->belongsToMany(Crew::class)
             ->withPivot([
                 'job'
-            ])
-            ->withTimestamps();
+            ]);
     }
 
     public function actors(): BelongsToMany
