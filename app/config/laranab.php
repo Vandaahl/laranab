@@ -4,4 +4,5 @@ return [
     'newznab_apis' => array_filter(
         array_map('trim', explode('|', env('NEWZNAB_APIS', '')))
     ),
+    'tmdb_api_key' => env('TMDB_API_KEY'),
 ];
