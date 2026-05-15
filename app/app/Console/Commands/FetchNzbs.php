@@ -17,14 +17,14 @@ class FetchNzbs extends Command
     /**
      * Execute the console command.
      */
-    public function handle(NzbFetcher $NzbService): void
+    public function handle(NzbFetcher $nzbService): void
     {
         /** @var array $urls */
         $urls = config('laranab.newznab_apis');
 
         foreach ($urls as $url) {
             try {
-                $items = $NzbService->fetch($url);
+                $items = $nzbService->fetch($url);
             } catch (ConnectionException|\Exception $e) {
                 Log::error('Failed to fetch NZBs from ' . $url . ': ' . $e->getMessage());
                 continue;
