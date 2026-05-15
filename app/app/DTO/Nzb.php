@@ -2,9 +2,9 @@
 
 namespace App\DTO;
 
-use App\Services\Api\ApiDataManipulator;
+use App\Services\Api\NzbDataManipulator;
 
-final readonly class ApiResponseItem
+final readonly class Nzb
 {
     public function __construct(
         public string  $title,
@@ -24,7 +24,7 @@ final readonly class ApiResponseItem
 
     public static function fromArray(array $data): self
     {
-        $attributes = ApiDataManipulator::flattenAttributes($data['attr']);
+        $attributes = NzbDataManipulator::flattenAttributes($data['attr']);
 
         return new self(
             title: $data['title'],

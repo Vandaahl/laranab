@@ -5,14 +5,14 @@ namespace App\DTO;
 use ArrayIterator;
 use Traversable;
 
-final class ApiResponseItemCollection
+final class NzbCollection
 {
     /**
-     * @param ApiResponseItem[] $items
+     * @param Nzb[] $items
      */
     public function __construct(public array $items) {
         foreach ($items as $item) {
-            if (!$item instanceof ApiResponseItem) {
+            if (!$item instanceof Nzb) {
                 throw new \InvalidArgumentException(
                     'All items must be instances of ApiResponseItem'
                 );
@@ -33,7 +33,7 @@ final class ApiResponseItemCollection
     public static function fromArray(array $data): self
     {
         return new self(
-            array_map(fn ($item) => ApiResponseItem::fromArray($item), $data)
+            array_map(fn ($item) => Nzb::fromArray($item), $data)
         );
     }
 }

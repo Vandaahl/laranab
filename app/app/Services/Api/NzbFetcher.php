@@ -5,14 +5,14 @@ namespace App\Services\Api;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
-class ApiService
+class NzbFetcher
 {
     /**
      * @param string $url
      * @return array
      * @throws ConnectionException
      */
-    public function fetchNzbs(string $url): array
+    public function fetch(string $url): array
     {
         $response = Http::timeout(20)->get($url);
 
@@ -25,8 +25,8 @@ class ApiService
         $itemData = $data['channel']['item'];
 
         // Filter out items with imdb=0000000 so only known releases are returned.
-        $items = ApiDataManipulator::removeItemsByAttributeValue('imdb', '0000000', $itemData);
+        $items = NzbDataManipulator::removeItemsByAttributeValue('imdb', '0000000', $itemData);
         // Also, filter out items that are missing the imdb attribute.
-        return ApiDataManipulator::removeItemsByMissingAttribute('imdb', $items);
+        return NzbDataManipulator::removeItemsByMissingAttribute('imdb', $items);
     }
 }

@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\ApiResponse;
-use App\Services\Api\ApiService;
+use App\Services\Api\NzbFetcher;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -17,14 +17,14 @@ class FetchNzbs extends Command
     /**
      * Execute the console command.
      */
-    public function handle(ApiService $apiService): void
+    public function handle(NzbFetcher $apiService): void
     {
         /** @var array $urls */
         $urls = config('laranab.newznab_apis');
 
         foreach ($urls as $url) {
             try {
-                $items = $apiService->fetchNzbs($url);
+                $items = $apiService->fetch($url);
             } catch (ConnectionException|\Exception $e) {
                 Log::error('Failed to fetch NZBs from ' . $url . ': ' . $e->getMessage());
                 continue;

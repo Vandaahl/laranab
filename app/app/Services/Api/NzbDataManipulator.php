@@ -2,7 +2,7 @@
 
 namespace App\Services\Api;
 
-class ApiDataManipulator
+class NzbDataManipulator
 {
     /**
      * Turn:
