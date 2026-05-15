@@ -13,6 +13,5 @@ abstract readonly class Person
         public string $originalName,
         public float $popularity,
         public ?string $profilePath,
-    ) {
-    }
+    ) {}
 }

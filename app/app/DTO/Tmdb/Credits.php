@@ -12,8 +12,7 @@ final readonly class Credits
         public Collection $cast,
         /** @var Collection<int, CrewMember> */
         public Collection $crew,
-    ) {
-    }
+    ) {}
 
     public static function fromArray(array $data): self
     {
