@@ -2,7 +2,7 @@
 
 namespace App\DTO;
 
-use App\Services\ApiDataManipulator;
+use App\Services\Api\ApiDataManipulator;
 
 final readonly class ApiResponseItem
 {

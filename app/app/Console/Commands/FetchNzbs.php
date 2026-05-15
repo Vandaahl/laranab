@@ -2,9 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\DTO\ApiResponseItemCollection;
 use App\Models\ApiResponse;
-use App\Services\ApiService;
+use App\Services\Api\ApiService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
