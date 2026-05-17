@@ -3,7 +3,8 @@ When you have cloned the repository, copy the .env.example file to .env and fill
 After creating the containers, run:
 ```bash
 docker exec laranab-app composer install
-docker exec php artisan migrate --force
+docker exec laranab-app php artisan migrate --force
+docker exec laranab-app php artisan storage:link
 ```
 
 If you wish to bind mount the 'db' directory for the database, create it first.
