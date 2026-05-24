@@ -17,7 +17,7 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
             $table->string('title')->index();
-            $table->guid('guid');
+            $table->string('guid');
             $table->string('group');
             $table->string('size');
             $table->string('nzb');
