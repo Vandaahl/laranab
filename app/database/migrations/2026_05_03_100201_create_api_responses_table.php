@@ -16,9 +16,8 @@ return new class extends Migration
             $table->string('source')->index();
             $table->json('payload');
             $table->timestamp('processed_at')->nullable()->index();
-            $table->timestamp('failed_at')->nullable();
+            $table->json('failed_items')->nullable();
             $table->unsignedTinyInteger('attempts')->default(0);
-            $table->text('error')->nullable();
             $table->timestamps();
         });
     }

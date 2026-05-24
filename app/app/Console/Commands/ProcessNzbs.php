@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\DTO\NzbData;
 use App\DTO\NzbCollection;
 use App\Models\ApiResponse;
 use App\Models\Nzb;
@@ -17,7 +16,6 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use App\Models\Movie;
-use Illuminate\Support\Facades\RateLimiter;
 
 #[Signature('app:process-nzbs')]
 #[Description('Get movie data from TMDB')]
@@ -32,6 +30,8 @@ class ProcessNzbs extends Command
         '2030' => 'sd'
     ];
 
+    private const int MAX_ATTEMPTS = 3;
+
     public function __construct(
         private readonly MovieProcessor $movieProcessor,
         private readonly TmdbDataFetcher $tmdbDataFetcher,
@@ -42,36 +42,40 @@ class ProcessNzbs extends Command
     }
 
     /**
-     * Execute the console command.
+     * Processes a queue of API responses containing NZBs and performs the following operations:
+     *
+     * - Removes NZBs that are missing required attributes.
+     * - Ensures NZBs are not duplicates based on their GUIDs or associated IMDB IDs.
+     * - Attempts to create a movie record for each valid NZB, attaching additional metadata (e.g., genres, production countries, directors, actors).
+     * - Downloads metadata using TMDB APIs for valid NZBs.
+     * - Handles errors related to external API connections and logs relevant messages.
+     * - Updates the processing status of the current API response, including attempts and failed items.
      */
     public function handle(): void
     {
         set_time_limit(0);
-        $queue = ApiResponse::where('processed_at', '=', null)->where('attempts', '<', 3)->limit(2)->get();
+        $queue = ApiResponse::where('processed_at', '=', null)->where('attempts', '<', self::MAX_ATTEMPTS)->limit(2)->get();
 
         $queue->each(function (ApiResponse $apiResponse) {
-            $failed = false;
-            // Keep track of the last NZB that was processed.
-            $lastNzb = 0;
-            $apiResponseItems = NzbDataManipulator::removeItemsByMissingAttribute(['imdb'], $apiResponse->payload);
+            // Keep track of NZB items that were not successfully processed, so they can be processed again in the future.
+            $failedItems = $apiResponse->failed_items ?? [];
+            $apiResponseItems = NzbDataManipulator::removeItemsByMissingAttributes(['imdb'], $apiResponse->payload);
             $collection = NzbCollection::fromArray($apiResponseItems);
-            $collection->each(function (NzbData $nzb, $key) use ($apiResponse, &$failed, &$lastNzb) {
+
+            foreach ($collection as $key => $nzb) {
                 // This NZB has already been processed.
-                if ($apiResponse->last_successful !== null && $key <= $apiResponse->last_successful) {
-                    $lastNzb++;
-                    return;
+                if ($apiResponse->attempts !== null && $apiResponse->attempts >= 1 && !in_array($key, $failedItems)) {
+                    continue;
                 }
 
                 if ($nzb->imdb === '0000000' || $nzb->imdb === null || $nzb->imdbTitle === null || $nzb->imdbYear === null) {
-                    $lastNzb++;
                     Log::channel('laranab')->warning("Skipping NZB {$nzb->title} because it is missing one or more imdb attributes.");
-                    return;
+                    continue;
                 }
 
                 if (Nzb::where('guid', $nzb->guid)->exists()) {
-                    $lastNzb++;
                     Log::channel('laranab')->warning("Skipping NZB {'$nzb->title}' because it already exists in the database.");
-                    return;
+                    continue;
                 }
 
                 $preExistingMovie = Movie::where('imdb_id', $nzb->imdb)->where('tmdb_id', '!=', null)->first();
@@ -84,6 +88,7 @@ class ProcessNzbs extends Command
                         Log::channel('laranab')->info("Movie {$nzb->imdbTitle} ({$nzb->imdb}) created.");
                     } catch (ImageDownloadException $e) {
                         Log::channel('laranab')->error("Failed to download image for movie {$nzb->imdbTitle}. Error: {$e->getMessage()}");
+                        // Continue even if image download fails, as it's not critical.
                     }
                 }
 
@@ -91,39 +96,35 @@ class ProcessNzbs extends Command
                     $movieData = $this->tmdbDataFetcher->getMovie($nzb);
                 } catch (\Exception $e) {
                     Log::channel('laranab')->warning($e->getMessage());
-                    if ($e instanceof TmdbConnectionException) {
-                        $apiResponse->failed_at = now();
-                        $apiResponse->error = $e->getMessage();
-                        $failed = true;
-                    }
-                    return;
+                    if (!in_array($key, $failedItems)) $failedItems[] = $key;
+                    continue;
                 }
 
-                $movie->update([
-                    'tmdb_id' => $movieData->tmdb_id,
-                    'original_title' => $movieData->original_title,
-                    'original_language' => $movieData->original_language,
-                    'overview' => $movieData->overview,
-                    'runtime' => $movieData->runtime,
-                ]);
+                if (isset($movie)) {
+                    $movie->update([
+                        'tmdb_id' => $movieData->tmdb_id,
+                        'original_title' => $movieData->original_title,
+                        'original_language' => $movieData->original_language,
+                        'overview' => $movieData->overview,
+                        'runtime' => $movieData->runtime,
+                    ]);
 
-                $this->movieProcessor->attachProductionCountriesToMovie($movieData, $movie);
-                $this->movieProcessor->attachGenresToMovie($movieData, $movie);
+                    $this->movieProcessor->attachProductionCountriesToMovie($movieData, $movie);
+                    $this->movieProcessor->attachGenresToMovie($movieData, $movie);
+                }
 
                 try {
                     $creditsData = $this->tmdbDataFetcher->getCredits($nzb);
                 } catch (\Exception $e) {
                     Log::channel('laranab')->warning($e->getMessage());
-                    if ($e instanceof TmdbConnectionException) {
-                        $apiResponse->failed_at = now();
-                        $apiResponse->error = $e->getMessage();
-                        $failed = true;
-                    }
-                    return;
+                    if (!in_array($key, $failedItems)) $failedItems[] = $key;
+                    continue;
                 }
 
-                $this->movieProcessor->attachDirectorsToMovie($creditsData, $movie);
-                $this->movieProcessor->attachActorsToMovie($creditsData, $movie);
+                if (isset($movie)) {
+                    $this->movieProcessor->attachDirectorsToMovie($creditsData, $movie);
+                    $this->movieProcessor->attachActorsToMovie($creditsData, $movie);
+                }
 
                 $nzbRecord = Nzb::create([
                     'title' => $nzb->title,
@@ -141,14 +142,21 @@ class ProcessNzbs extends Command
                 $categoryIds = $this->nzbProcessor->getCategoryIds($nzb);
                 $nzbRecord->categories()->sync($categoryIds);
 
-                $lastNzb++;
-            });
+                // If we made it this far, the NZB was successfully processed, so remove it from the failed items array.
+                if (count($failedItems) > 0 && in_array($key, $failedItems)) {
+                    unset($failedItems[array_search($key, $failedItems)]);
+                }
+            }
 
-            $apiResponse->attempts++;
-            $apiResponse->last_successful = $lastNzb;
-            if (!$failed) $apiResponse->processed_at = now();
-            $apiResponse->save();
             Log::channel('laranab')->info("Done processing ApiResponse {$apiResponse->id}");
+            $apiResponse->attempts++;
+            if (count($failedItems)) {
+                $apiResponse->failed_items = $failedItems;
+            }
+            if ($apiResponse->attempts == self::MAX_ATTEMPTS) {
+                $apiResponse->processed_at = now();
+            }
+            $apiResponse->save();
         });
     }
 }
