@@ -86,7 +86,7 @@ class NzbDataManipulator
     }
 
     /**
-     * Remove items from an array that are missing a specific attribute.
+     * Remove items from an array that are missing a specific attribute and keep the rest.
      *
      * Each item in the array is expected to contain an "attr" key with a list of attributes, each
      * in this format: ["@attributes" => ["name" => "category", "value" => "2000"]].
@@ -97,7 +97,7 @@ class NzbDataManipulator
      * @param array $items The array of items to filter.
      * @return array The filtered array of items.
      */
-    public static function removeItemsByMissingAttributes(array $names, array $items): array
+    public static function keepItemsWithAttributes(array $names, array $items): array
     {
         return collect($items)
             ->filter(function ($item) use ($names) {

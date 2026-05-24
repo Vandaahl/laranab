@@ -6,7 +6,6 @@ use App\DTO\NzbCollection;
 use App\Models\ApiResponse;
 use App\Models\Nzb;
 use App\Services\Api\Exceptions\ImageDownloadException;
-use App\Services\Api\Exceptions\TmdbConnectionException;
 use App\Services\Api\NzbDataManipulator;
 use App\Services\Api\TmdbDataFetcher;
 use App\Services\Movie\MovieProcessor;
@@ -18,7 +17,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Movie;
 
 #[Signature('app:process-nzbs')]
-#[Description('Get movie data from TMDB')]
+#[Description('Create NZBs and movies enriched with metadata from TMDB')]
 class ProcessNzbs extends Command
 {
     public const array NZB_CATEGORIES = [
@@ -59,7 +58,7 @@ class ProcessNzbs extends Command
         $queue->each(function (ApiResponse $apiResponse) {
             // Keep track of NZB items that were not successfully processed, so they can be processed again in the future.
             $failedItems = $apiResponse->failed_items ?? [];
-            $apiResponseItems = NzbDataManipulator::removeItemsByMissingAttributes(['imdb'], $apiResponse->payload);
+            $apiResponseItems = NzbDataManipulator::keepItemsWithAttributes(['imdb'], $apiResponse->payload);
             $collection = NzbCollection::fromArray($apiResponseItems);
 
             foreach ($collection as $key => $nzb) {
