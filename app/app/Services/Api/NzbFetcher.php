@@ -27,6 +27,6 @@ class NzbFetcher
         // Filter out items with imdb=0000000 so only known releases are returned.
         $items = NzbDataManipulator::removeItemsByAttributeValue('imdb', '0000000', $itemData);
         // Filter out items that are missing required imdb attributes.
-        return NzbDataManipulator::removeItemsByMissingAttribute(['imdb', 'imdbtitle', 'imdbyear'], $items);
+        return NzbDataManipulator::removeItemsByMissingAttributes(['imdb', 'imdbtitle', 'imdbyear'], $items);
     }
 }
