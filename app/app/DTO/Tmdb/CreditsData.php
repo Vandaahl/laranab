@@ -4,13 +4,13 @@ namespace App\DTO\Tmdb;
 
 use Illuminate\Support\Collection;
 
-final readonly class Credits
+final readonly class CreditsData
 {
     public function __construct(
         public int $id,
-        /** @var Collection<int, CastMember> */
+        /** @var Collection<int, CastMemberData> */
         public Collection $cast,
-        /** @var Collection<int, CrewMember> */
+        /** @var Collection<int, CrewMemberData> */
         public Collection $crew,
     ) {}
 
@@ -19,9 +19,9 @@ final readonly class Credits
         return new self(
             id: $data['id'],
             cast: collect($data['cast'])
-                ->map(fn (array $cast) => CastMember::fromArray($cast)),
+                ->map(fn (array $cast) => CastMemberData::fromArray($cast)),
             crew: collect($data['crew'])
-                ->map(fn (array $crew) => CrewMember::fromArray($crew)),
+                ->map(fn (array $crew) => CrewMemberData::fromArray($crew)),
         );
     }
 }

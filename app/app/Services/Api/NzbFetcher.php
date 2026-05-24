@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Services\Api;
 
@@ -26,7 +26,7 @@ class NzbFetcher
 
         // Filter out items with imdb=0000000 so only known releases are returned.
         $items = NzbDataManipulator::removeItemsByAttributeValue('imdb', '0000000', $itemData);
-        // Also, filter out items that are missing the imdb attribute.
-        return NzbDataManipulator::removeItemsByMissingAttribute('imdb', $items);
+        // Filter out items that are missing required imdb attributes.
+        return NzbDataManipulator::removeItemsByMissingAttribute(['imdb', 'imdbtitle', 'imdbyear'], $items);
     }
 }

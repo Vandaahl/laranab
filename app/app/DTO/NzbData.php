@@ -4,7 +4,7 @@ namespace App\DTO;
 
 use App\Services\Api\NzbDataManipulator;
 
-final readonly class Nzb
+final readonly class NzbData
 {
     public function __construct(
         public string  $title,
@@ -28,7 +28,7 @@ final readonly class Nzb
 
         return new self(
             title: $data['title'],
-            imdb: $attributes['imdb'] ?? null,
+            imdb: 'tt' . $attributes['imdb'] ?? null,
             imdbTitle: $attributes['imdbtitle'] ?? null,
             size: $attributes['size'] ?? null,
             pubDate: $data['pubDate'] ?? null,

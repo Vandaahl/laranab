@@ -15,9 +15,9 @@ class Movie extends Model
         return $this->hasMany(Nzb::class);
     }
 
-    public function crew(): BelongsToMany
+    public function credits(): BelongsToMany
     {
-        return $this->belongsToMany(Crew::class)
+        return $this->belongsToMany(Credit::class)
             ->withPivot([
                 'job'
             ]);
@@ -25,18 +25,23 @@ class Movie extends Model
 
     public function actors(): BelongsToMany
     {
-        return $this->belongsToMany(Crew::class)
+        return $this->belongsToMany(Credit::class)
             ->wherePivot('job', 'actor');
     }
 
     public function directors(): BelongsToMany
     {
-        return $this->belongsToMany(Crew::class)
+        return $this->belongsToMany(Credit::class)
             ->wherePivot('job', 'director');
     }
 
     public function genres(): BelongsToMany
     {
         return $this->belongsToMany(Genre::class);
+    }
+
+    public function countries(): BelongsToMany
+    {
+        return $this->belongsToMany(Country::class);
     }
 }

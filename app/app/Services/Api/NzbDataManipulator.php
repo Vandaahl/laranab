@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Services\Api;
 
@@ -93,17 +93,17 @@ class NzbDataManipulator
      * The filtering is based on the condition that, within the "attr" list, an attribute with the
      * specified name is missing.
      *
-     * @param string $name The name of the missing attribute to filter by.
+     * @param array $names The names of the missing attribute to filter by.
      * @param array $items The array of items to filter.
      * @return array The filtered array of items.
      */
-    public static function removeItemsByMissingAttribute(string $name, array $items): array
+    public static function removeItemsByMissingAttribute(array $names, array $items): array
     {
         return collect($items)
-            ->filter(function ($item) use ($name) {
+            ->filter(function ($item) use ($names) {
                 return collect($item['attr'] ?? [])
-                    ->contains(function ($attr) use ($name) {
-                        return ($attr['@attributes']['name'] ?? null) === $name;
+                    ->contains(function ($attr) use ($names) {
+                        return !in_array($attr['@attributes']['name'] ?? null, $names);
                      });
             })
         ->values()

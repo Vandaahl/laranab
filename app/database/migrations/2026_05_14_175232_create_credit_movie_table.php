@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('crew_movie', function (Blueprint $table) {
-            $table->foreignId('crew_id')
-                ->constrained('crew')
+        Schema::create('credit_movie', function (Blueprint $table) {
+            $table->foreignId('credit_id')
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignId('movie_id')
@@ -23,7 +23,7 @@ return new class extends Migration
             // Actor or director.
             $table->string('job');
 
-            $table->primary(['crew_id', 'movie_id', 'job']);
+            $table->primary(['credit_id', 'movie_id', 'job']);
         });
     }
 
@@ -32,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('crew_movie');
+        Schema::dropIfExists('credit_movie');
     }
 };

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-#[Fillable(['title', 'guid', 'group', 'category', 'nzb', 'nfo'])]
+#[Fillable(['title', 'movie_id', 'guid', 'group', 'size', 'nzb', 'nfo', 'published_at'])]
 class Nzb extends Model
 {
     public function movie(): BelongsTo
@@ -18,5 +18,10 @@ class Nzb extends Model
     public function nzbs(): BelongsToMany
     {
         return $this->belongsToMany(Nzb::class);
+    }
+
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class);
     }
 }

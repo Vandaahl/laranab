@@ -2,7 +2,7 @@
 
 namespace App\DTO\Tmdb;
 
-abstract readonly class Person
+abstract readonly class PersonData
 {
     public function __construct(
         public bool $adult,

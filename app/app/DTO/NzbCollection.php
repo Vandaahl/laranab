@@ -5,7 +5,7 @@ namespace App\DTO;
 use Illuminate\Support\Collection;
 
 /**
- * @extends Collection<int, Nzb>
+ * @extends Collection<int, NzbData>
  */
 final class NzbCollection extends Collection
 {
@@ -16,7 +16,7 @@ final class NzbCollection extends Collection
     {
         return new self(
             array_map(
-                fn (array $itemData): Nzb => Nzb::fromArray($itemData),
+                fn (array $itemData): NzbData => NzbData::fromArray($itemData),
                 $data
             )
         );

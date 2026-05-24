@@ -2,7 +2,7 @@
 
 namespace App\DTO\Tmdb;
 
-final readonly class CastMember extends Person
+final readonly class CrewMemberData extends PersonData
 {
     public function __construct(
         bool $adult,
@@ -14,10 +14,9 @@ final readonly class CastMember extends Person
         float $popularity,
         ?string $profilePath,
 
-        public int $castId,
-        public string $character,
         public string $creditId,
-        public int $order,
+        public string $department,
+        public string $job,
     ) {
         parent::__construct(
             adult: $adult,
@@ -43,10 +42,9 @@ final readonly class CastMember extends Person
             popularity: $data['popularity'],
             profilePath: $data['profile_path'],
 
-            castId: $data['cast_id'],
-            character: $data['character'],
             creditId: $data['credit_id'],
-            order: $data['order'],
+            department: $data['department'],
+            job: $data['job'],
         );
     }
 }
