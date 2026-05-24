@@ -97,16 +97,23 @@ class NzbDataManipulator
      * @param array $items The array of items to filter.
      * @return array The filtered array of items.
      */
-    public static function removeItemsByMissingAttribute(array $names, array $items): array
+    public static function removeItemsByMissingAttributes(array $names, array $items): array
     {
         return collect($items)
             ->filter(function ($item) use ($names) {
-                return collect($item['attr'] ?? [])
-                    ->contains(function ($attr) use ($names) {
-                        return !in_array($attr['@attributes']['name'] ?? null, $names);
-                     });
+                $itemAttributes = collect($item['attr'] ?? [])
+                    ->map(fn($attr) => $attr['@attributes']['name'] ?? null)
+                    ->all();
+
+                foreach ($names as $name) {
+                    if (!in_array($name, $itemAttributes)) {
+                        return false;
+                    }
+                }
+
+                return true;
             })
-        ->values()
-        ->all();
+            ->values()
+            ->all();
     }
 }
