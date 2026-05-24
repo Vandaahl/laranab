@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\DTO\NzbData;
 use App\DTO\NzbCollection;
 use App\Models\ApiResponse;
-use App\Models\Category;
 use App\Models\Nzb;
 use App\Services\Api\Exceptions\ImageDownloadException;
 use App\Services\Api\Exceptions\TmdbConnectionException;
@@ -59,16 +58,19 @@ class ProcessNzbs extends Command
             $collection->each(function (NzbData $nzb, $key) use ($apiResponse, &$failed, &$lastNzb) {
                 // This NZB has already been processed.
                 if ($apiResponse->last_successful !== null && $key <= $apiResponse->last_successful) {
+                    $lastNzb++;
                     return;
                 }
 
                 if ($nzb->imdb === '0000000' || $nzb->imdb === null || $nzb->imdbTitle === null || $nzb->imdbYear === null) {
+                    $lastNzb++;
                     Log::channel('laranab')->warning("Skipping NZB {$nzb->title} because it is missing one or more imdb attributes.");
                     return;
                 }
 
                 if (Nzb::where('guid', $nzb->guid)->exists()) {
-                    Log::channel('laranab')->warning("Skipping NZB {$nzb->title} because it already exists in the database.");
+                    $lastNzb++;
+                    Log::channel('laranab')->warning("Skipping NZB {'$nzb->title}' because it already exists in the database.");
                     return;
                 }
 
@@ -134,13 +136,12 @@ class ProcessNzbs extends Command
                     'published_at' => new \DateTime($nzb->pubDate),
                 ]);
 
-                $lastNzb++;
+                Log::channel('laranab')->info("Nzb '{$nzb->title}' for IMDB ID {$nzb->imdb} created.");
 
                 $categoryIds = $this->nzbProcessor->getCategoryIds($nzb);
                 $nzbRecord->categories()->sync($categoryIds);
 
-                // todo: update ApiResponse with processed_at, failed_at, attempts, error
-                // todo: after failed, retry from the failed nzb/movie
+                $lastNzb++;
             });
 
             $apiResponse->attempts++;
@@ -149,38 +150,5 @@ class ProcessNzbs extends Command
             $apiResponse->save();
             Log::channel('laranab')->info("Done processing ApiResponse {$apiResponse->id}");
         });
-    }
-
-    /**
-     * Handles executing a callback function while enforcing rate limits using a RateLimiter.
-     *
-     * Continuously checks the remaining allowance for the 'tmdb' key in the RateLimiter. If the
-     * allowance has been depleted, the method waits until the RateLimiter allows for further
-     * operations by sleeping for the reported number of seconds or waiting briefly to
-     * accommodate edge cases. After the rate limit is incremented, the provided callback function
-     * is executed and its result is returned.
-     *
-     * @param callable $callback A callback function to execute once the rate limit has been handled.
-     * @return mixed The result of the executed callback function.
-     */
-    private function withRateLimit(callable $callback): mixed
-    {
-        $limiter = RateLimiter::limiter('tmdb');
-        $maxAttempts = $limiter ? $limiter()->maxAttempts : 40;
-
-        while (RateLimiter::remaining('tmdb', $maxAttempts) === 0) {
-            $seconds = RateLimiter::availableIn('tmdb');
-            if ($seconds > 0) {
-                sleep($seconds);
-            } else {
-                // If availableIn is 0 but remaining is 0, we might be at the edge of a second.
-                // Wait a tiny bit to avoid a busy loop.
-                usleep(100000); // 100ms
-            }
-        }
-
-        RateLimiter::increment('tmdb');
-
-        return $callback();
     }
 }
