@@ -128,7 +128,7 @@ return [
         ],
 
         'laranab' => [
-            'driver' => 'single',
+            'driver' => 'daily',
             'path' => storage_path('logs/laranab.log'),
             'level' => env('LOG_LEVEL', 'debug'),
         ],

@@ -8,7 +8,7 @@ abstract readonly class PersonData
         public bool $adult,
         public int $gender,
         public int $id,
-        public string $knownForDepartment,
+        public ?string $knownForDepartment,
         public string $name,
         public string $originalName,
         public float $popularity,

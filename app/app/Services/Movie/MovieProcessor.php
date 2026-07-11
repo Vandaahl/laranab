@@ -56,9 +56,10 @@ final readonly class MovieProcessor
             return $crew->job === 'Director';
         });
         foreach ($directors as $director) {
-            $director = Credit::firstOrCreate([
-                'name' => $director->name,
+            $director = Credit::updateOrCreate([
                 'tmdb_id' => $director->id,
+            ], [
+                'name' => $director->name,
             ]);
             $movie->credits()->syncWithoutDetaching([
                 $director->id => ['job' => 'Director']
@@ -77,9 +78,10 @@ final readonly class MovieProcessor
     public function attachActorsToMovie(CreditsData $creditsData, Movie $movie): void
     {
         foreach ($creditsData->cast as $castMember) {
-            $actor = Credit::firstOrCreate([
-                'name' => $castMember->name,
+            $actor = Credit::updateOrCreate([
                 'tmdb_id' => $castMember->id,
+            ], [
+                'name' => $castMember->name,
             ]);
             $movie->credits()->syncWithoutDetaching([
                 $actor->id => ['job' => 'Actor']
@@ -102,8 +104,9 @@ final readonly class MovieProcessor
         }
 
         foreach ($movieData->production_countries as $productionCountry) {
-            $country = Country::firstOrCreate([
+            $country = Country::updateOrCreate([
                 'iso_3166_1' => $productionCountry['iso_3166_1'],
+            ], [
                 'name' => $productionCountry['name'],
             ]);
             $movie->countries()->syncWithoutDetaching($country->id);
@@ -125,8 +128,9 @@ final readonly class MovieProcessor
         }
 
         foreach ($movieData->genres as $genre) {
-            $genre = Genre::firstOrCreate([
+            $genre = Genre::updateOrCreate([
                 'tmdb_id' => $genre['id'],
+            ], [
                 'name' => $genre['name'],
             ]);
             $movie->genres()->syncWithoutDetaching($genre->id);

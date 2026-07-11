@@ -100,6 +100,24 @@ class ProcessNzbs extends Command
                 }
 
                 if (isset($movie)) {
+                    // Check if another movie record already has this tmdb_id. If so, use that movie record instead to avoid a
+                    // duplicate tmdb_id key error when updating the movie record.
+                    $preExistingMovieWithTmdbId = Movie::where('tmdb_id', $movieData->tmdb_id)
+                        ->where('id', '!=', $movie->id)
+                        ->first();
+
+                    if ($preExistingMovieWithTmdbId) {
+                        Log::channel('laranab')->info("Merging movie {$movie->imdb_id} into existing movie with tmdb_id {$movieData->tmdb_id}.");
+
+                        // If the current movie record was just created and doesn't have a tmdb_id yet, and it's different from
+                        // the existing one, we should delete it to avoid orphaned records.
+                        if ($movie->tmdb_id === null && $movie->id !== $preExistingMovieWithTmdbId->id) {
+                            $movie->delete();
+                        }
+
+                        $movie = $preExistingMovieWithTmdbId;
+                    }
+
                     $movie->update([
                         'tmdb_id' => $movieData->tmdb_id,
                         'original_title' => $movieData->original_title,
@@ -152,7 +170,7 @@ class ProcessNzbs extends Command
             if (count($failedItems)) {
                 $apiResponse->failed_items = $failedItems;
             }
-            if ($apiResponse->attempts == self::MAX_ATTEMPTS) {
+            if ($apiResponse->attempts == self::MAX_ATTEMPTS || count($failedItems) == 0) {
                 $apiResponse->processed_at = now();
             }
             $apiResponse->save();

@@ -2,6 +2,9 @@
 
 use App\DTO\NzbCollection;
 use App\DTO\NzbData;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\MovieController;
+use App\Http\Controllers\NzbController;
 use App\Models\ApiResponse;
 use App\Models\Credit;
 use App\Models\Movie;
@@ -10,10 +13,14 @@ use App\Services\Api\ImageDownloader;
 use App\Services\Api\NzbDataManipulator;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function ()
-{
-    return view('welcome');
-});
+Route::get('/', [MovieController::class, 'index'])
+    ->name('home');
+
+Route::get('/categories/{category}', [CategoryController::class, 'show'])
+    ->name('categories.show');
+
+Route::get('/nzbs/{nzb}/nfo', [NzbController::class, 'nfo'])
+    ->name('nzb.nfo');
 
 Route::get('/api/nzbs/test/fetch', function ()
 {
@@ -33,7 +40,7 @@ Route::get('/api/nzbs/test/read', function ()
 Route::get('/api/nzbs/test/filter', function () {
     $apiResponse = ApiResponse::latest()->first()->payload;
     dump(count($apiResponse) . ' unfiltered items');
-    $items = NzbDataManipulator::removeItemsByMissingAttribute(['imdb'], $apiResponse);
+    $items = NzbDataManipulator::keepItemsWithAttributes(['imdb'], $apiResponse);
     dd(count($items) . ' items after filtering out items that are missing imdb attribute');
 });
 

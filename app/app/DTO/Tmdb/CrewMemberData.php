@@ -8,7 +8,7 @@ final readonly class CrewMemberData extends PersonData
         bool $adult,
         int $gender,
         int $id,
-        string $knownForDepartment,
+        ?string $knownForDepartment,
         string $name,
         string $originalName,
         float $popularity,
