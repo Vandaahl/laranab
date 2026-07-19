@@ -10,6 +10,7 @@ use App\Models\Credit;
 use App\Models\Genre;
 use App\Models\Movie;
 use App\Services\Api\ImageDownloader;
+use Illuminate\Support\Facades\DB;
 
 final readonly class MovieProcessor
 {
@@ -61,8 +62,10 @@ final readonly class MovieProcessor
             ], [
                 'name' => $director->name,
             ]);
-            $movie->credits()->syncWithoutDetaching([
-                $director->id => ['job' => 'Director']
+            DB::table('credit_movie')->updateOrInsert([
+                'movie_id' => $movie->id,
+                'credit_id' => $director->id,
+                'job' => 'Director',
             ]);
         }
     }
@@ -83,8 +86,10 @@ final readonly class MovieProcessor
             ], [
                 'name' => $castMember->name,
             ]);
-            $movie->credits()->syncWithoutDetaching([
-                $actor->id => ['job' => 'Actor']
+            DB::table('credit_movie')->updateOrInsert([
+                'movie_id' => $movie->id,
+                'credit_id' => $actor->id,
+                'job' => 'Actor',
             ]);
         }
     }
