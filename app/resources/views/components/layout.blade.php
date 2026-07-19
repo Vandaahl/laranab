@@ -2,7 +2,7 @@
     "title" => config('app.name')
 ])
 
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
@@ -19,7 +19,7 @@
 <div class="min-h-screen flex flex-col">
     <x-nav></x-nav>
 
-    <main class="container mx-auto px-4 py-8">
+    <main class="w-auto px-4 py-8">
         {{ $slot }}
     </main>
 
