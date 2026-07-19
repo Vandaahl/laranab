@@ -46,13 +46,10 @@ class CategoryController extends Controller
             ->with(['nzbs' => fn ($query) => $query->inCategory($category)->latest(), 'directors', 'actors', 'genres'])
             ->paginate(32);
 
-        $categories = Category::whereNull('parent_id')
-            ->with('children')
-            ->get();
+        $label = strlen($category->name) <= 3 ? strtoupper($category->name) : ucfirst($category->name);
+        $heading = "Browsing movies in the {$label} category";
 
-        $heading = "Browsing movies in the {$category->name} category";
-
-        return view('welcome', compact('category', 'movies', 'categories', 'heading'));
+        return view('welcome', compact('category', 'movies', 'heading'));
     }
 
     /**
