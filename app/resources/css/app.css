@@ -6,7 +6,7 @@
 @source '../**/*.js';
 
 @plugin "daisyui" {
-    themes: lofi --default;
+    themes: corporate --default;
 }
 
 @theme {
