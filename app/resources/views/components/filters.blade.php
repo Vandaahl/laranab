@@ -8,7 +8,7 @@
     $years = array_reverse($years);
 @endphp
 
-<form method="GET" action="{{ url()->current() }}" class="py-4">
+<form method="GET" action="{{ url()->current() }}" class="py-4 flex gap-5 flex-col md:flex-row">
     <input
         type="text"
         name="director"
@@ -25,23 +25,25 @@
         class="input"
     >
 
-    <select name="startYear" class="select w-auto">
-        <option value="">Start year</option>
-        @foreach($years as $y)
-            <option value="{{ $y }}" @selected((string)request('startYear') === (string)$y)>
-                {{ $y }}
-            </option>
-        @endforeach
-    </select>
+    <div class="flex flex-nowrap gap-2">
+        <select name="startYear" class="select w-auto">
+            <option value="">Start year</option>
+            @foreach($years as $y)
+                <option value="{{ $y }}" @selected((string)request('startYear') === (string)$y)>
+                    {{ $y }}
+                </option>
+            @endforeach
+        </select>
 
-    <select name="endYear" class="select w-auto">
-        <option value="">End year</option>
-        @foreach($years as $y)
-            <option value="{{ $y }}" @selected((string)request('endYear') === (string)$y)>
-                {{ $y }}
-            </option>
-        @endforeach
-    </select>
+        <select name="endYear" class="select w-auto">
+            <option value="">End year</option>
+            @foreach($years as $y)
+                <option value="{{ $y }}" @selected((string)request('endYear') === (string)$y)>
+                    {{ $y }}
+                </option>
+            @endforeach
+        </select>
+    </div>
 
-    <button type="submit" class="btn">Filter</button>
+    <button type="submit" class="btn w-24">Filter</button>
 </form>
