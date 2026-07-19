@@ -1,64 +1,58 @@
-<nav class="max-lg:collapse bg-base-200 shadow-sm w-full rounded-md mb-0">
-    <input id="navbar-1-toggle" class="peer hidden" type="checkbox"/>
-    <label for="navbar-1-toggle" class="fixed inset-0 hidden max-lg:peer-checked:block"></label>
-    <div class="collapse-title navbar">
-        <div class="navbar-start">
-            <label for="navbar-1-toggle" class="btn btn-ghost lg:hidden">
+@props(['categories'])
+
+<div class="navbar bg-base-100 shadow-sm">
+    <div class="navbar-start">
+        <div class="dropdown">
+            <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                      stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M4 6h16M4 12h8m-8 6h16"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
                 </svg>
-            </label>
-            <a href="{{ route('home') }}" class="btn btn-ghost text-xl">{{ config('app.name') }}</a>
-        </div>
-        <div class="navbar-center hidden lg:flex">
-            <ul class="menu menu-horizontal px-1">
-                <li>
-                    <button>Item 1</button>
-                </li>
-                <li>
-                    <details>
-                        <summary>Parent</summary>
-                        <ul class="p-2 bg-base-100 w-40 z-1">
-                            <li>
-                                <button>Submenu 1</button>
-                            </li>
-                            <li>
-                                <button>Submenu 2</button>
-                            </li>
-                        </ul>
-                    </details>
-                </li>
-                <li>
-                    <button>Item 3</button>
-                </li>
+            </div>
+            <ul
+                tabindex="-1"
+                class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
+                <li><a href="{{ route('home') }}">Homepage</a></li>
+                @foreach($categories as $category)
+                    <li>
+                        <a href="{{ route('categories.show', $category) }}">
+                            {{ ucfirst($category->name) }}
+                        </a>
+                    </li>
+                    @if($category->children->isNotEmpty())
+                        <li>
+                            <ul>
+                                @foreach($category->children as $child)
+                                    <li>
+                                        <a href="{{ route('categories.show', $child) }}">
+                                            @if(mb_strlen($child->name) <= 3)
+                                                {{ mb_strtoupper($child->name) }}
+                                            @else
+                                                {{ ucfirst($child->name) }}
+                                            @endif
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </li>
+                    @endif
+                @endforeach
             </ul>
         </div>
-        <div class="navbar-end">
-            <input type="text" placeholder="Search" class="input input-bordered w-64 lg:w-auto"/>
-        </div>
     </div>
-
-    <div class="collapse-content lg:hidden z-1">
-        <ul class="menu">
-            <li>
-                <button>Item 1</button>
-            </li>
-            <li>
-                <button>Parent</button>
-                <ul>
-                    <li>
-                        <button>Submenu 1</button>
-                    </li>
-                    <li>
-                        <button>Submenu 2</button>
-                    </li>
-                </ul>
-            </li>
-            <li>
-                <button>Item 3</button>
-            </li>
-        </ul>
+    <div class="navbar-center">
+        <a class="btn btn-ghost text-xl" href="{{ route('home') }}">Newznabber</a>
     </div>
-</nav>
+    <div class="navbar-end">
+        <form method="GET" action="{{ route('search') }}" class="join">
+            <input
+                type="text"
+                name="q"
+                value="{{ request('q') }}"
+                placeholder="Search movies..."
+                class="input input-bordered w-auto"
+            >
+            <button type="submit" class="btn btn-neutral join-item">Search</button>
+        </form>
+    </div>
+</div>

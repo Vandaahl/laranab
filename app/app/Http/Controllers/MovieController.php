@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
 use App\Models\Movie;
 use Illuminate\Http\Request;
 
@@ -20,12 +19,7 @@ class MovieController extends Controller
             ->with(['nzbs' => fn ($query) => $query->latest(), 'directors', 'actors', 'genres'])
             ->paginate(32);
 
-        $categories = Category::whereNull('parent_id')
-            ->with('children')
-            ->get();
-
         return view('welcome', [
-            'categories' => $categories,
             'movies' => $movies,
             'heading' => 'Recent Movies'
         ]);

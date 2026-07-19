@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
 use App\Models\Movie;
 use Illuminate\Http\Request;
 
@@ -47,12 +46,7 @@ class SearchController extends Controller
                 'q' => $term,
             ]);
 
-        $categories = Category::whereNull('parent_id')
-            ->with('children')
-            ->get();
-
         return view('welcome', [
-            'categories' => $categories,
             'movies' => $movies,
             'heading' => 'Search results for "' . $term . '"'
         ]);

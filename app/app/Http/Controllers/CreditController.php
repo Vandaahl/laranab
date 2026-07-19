@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
 use App\Models\Credit;
 use App\Models\Movie;
 use Illuminate\Http\Request;
@@ -46,12 +45,7 @@ class CreditController extends Controller
             ->whereHas('credits', fn ($query) => $query->whereKey($credit->id))
             ->paginate(32);
 
-        $categories = Category::whereNull('parent_id')
-            ->with('children')
-            ->get();
-
         return view('welcome', [
-            'categories' => $categories,
             'movies' => $movies,
             'credit' => $credit,
             'heading' => "Browsing movies starring or directed by {$credit->name}",
