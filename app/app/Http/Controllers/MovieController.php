@@ -12,25 +12,27 @@ class MovieController extends Controller
      */
     public function index(Request $request)
     {
-        $director = $request->query('director');
-        $actor = $request->query('actor');
-        $startYear = $request->query('startYear');
-        $endYear = $request->query('endYear');
+        $validated = $request->validate([
+            'director' => ['nullable', 'string', 'max:255'],
+            'actor' => ['nullable', 'string', 'max:255'],
+            'startYear' => ['nullable', 'integer'],
+            'endYear' => ['nullable', 'integer'],
+        ]);
 
         // Get movies ordered by latest NZBs that are attached to them.
         $movies = Movie::whereHas('nzbs')
-            ->filterByDirector($director)
-            ->filterByActor($actor)
-            ->filterByYear($startYear, $endYear)
+            ->filterByDirector($validated['director'] ?? null)
+            ->filterByActor($validated['actor'] ?? null)
+            ->filterByYear($validated['startYear'] ?? null, $validated['endYear'] ?? null)
             ->withMax('nzbs', 'published_at')
             ->orderByDesc('nzbs_max_published_at')
             ->with(['nzbs' => fn ($query) => $query->latest(), 'directors', 'actors', 'genres'])
             ->paginate(32)
             ->appends([
-                'director' => $director,
-                'actor'=> $actor,
-                'startYear' => $startYear,
-                'endYear' => $endYear,
+                'director' => $validated['director'] ?? null,
+                'actor'=> $validated['actor'] ?? null,
+                'startYear' => $validated['startYear'] ?? null,
+                'endYear' => $validated['endYear'] ?? null,
             ]);
 
         return view('welcome', [
