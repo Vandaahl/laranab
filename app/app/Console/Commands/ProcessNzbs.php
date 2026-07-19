@@ -151,7 +151,7 @@ class ProcessNzbs extends Command
                     'size' => $nzb->size,
                     'nzb' => $nzb->nzb,
                     'nfo' => $nzb->nfo,
-                    'published_at' => new \DateTime($nzb->pubDate),
+                    'published_at' => (new \DateTime($nzb->pubDate))->setTimezone(new \DateTimeZone(config('app.timezone'))),
                 ]);
 
                 Log::channel('laranab')->info("Nzb '{$nzb->title}' for IMDB ID {$nzb->imdb} created.");
