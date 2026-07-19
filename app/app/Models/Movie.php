@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
 
 #[Fillable(['imdb_id', 'tmdb_id', 'title', 'original_title', 'year', 'poster', 'overview', 'imdb_score', 'runtime', 'original_language'])]
 class Movie extends Model
@@ -43,5 +45,47 @@ class Movie extends Model
     public function countries(): BelongsToMany
     {
         return $this->belongsToMany(Country::class);
+    }
+
+    /**
+     * Scope a query to only include movies with the given director.
+     */
+    #[Scope]
+    protected function filterByDirector(Builder $query, ?string $director = null): Builder
+    {
+        $director = trim((string) $director);
+        if ($director === '') return $query;
+
+        return $query->whereHas('directors', function (Builder $q) use ($director) {
+            $q->where('credits.name', 'LIKE', '%' . $director . '%');
+        });
+    }
+
+    /**
+     * Scope a query to only include movies with the given actor.
+     */
+    #[Scope]
+    protected function filterByActor(Builder $query, ?string $actor = null): Builder
+    {
+        $actor = trim((string) $actor);
+        if ($actor === '') return $query;
+
+        return $query->whereHas('actors', function (Builder $q) use ($actor) {
+            $q->where('credits.name', 'LIKE', '%' . $actor . '%');
+        });
+    }
+
+    /**
+     * Scope a query to only include movies from a certain year (range).
+     */
+    #[Scope]
+    protected function filterByYear(Builder $query, ?int $startYear = null, ?int $endYear = null): Builder
+    {
+        if ($startYear === null && $endYear === null) return $query;
+
+        if ($startYear === null) $startYear = 1900;
+        if ($endYear === null) $endYear = date('Y');
+
+        return $query->whereBetween('year', [$startYear, $endYear]);
     }
 }

@@ -35,21 +35,36 @@ class CategoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Category $category)
+    public function show(Category $category, Request $request)
     {
+        $director = $request->query('director');
+        $actor = $request->query('actor');
+        $startYear = $request->query('startYear');
+        $endYear = $request->query('endYear');
+
         // Get movies ordered by latest NZBs that are attached to them.
         $movies = Movie::whereHas('nzbs', fn ($query) => $query->inCategory($category))
+            ->filterByDirector($director)
+            ->filterByActor($actor)
+            ->filterByYear($startYear, $endYear)
             ->withMax([
                 'nzbs as latest_category_nzb' => fn ($query) => $query->inCategory($category)
             ], 'published_at')
             ->orderByDesc('latest_category_nzb')
             ->with(['nzbs' => fn ($query) => $query->inCategory($category)->latest(), 'directors', 'actors', 'genres'])
-            ->paginate(32);
+            ->paginate(32)
+            ->appends([
+                'director' => $director,
+                'actor'=> $actor,
+                'startYear' => $startYear,
+                'endYear' => $endYear,
+            ]);
 
         $label = strlen($category->name) <= 3 ? strtoupper($category->name) : ucfirst($category->name);
         $heading = "Browsing movies in the {$label} category";
+        $showFilters = true;
 
-        return view('welcome', compact('category', 'movies', 'heading'));
+        return view('welcome', compact('category', 'movies', 'heading', 'showFilters'));
     }
 
     /**

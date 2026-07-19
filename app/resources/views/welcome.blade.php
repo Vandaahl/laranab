@@ -1,8 +1,14 @@
+@props(['showFilters' => false])
+
 <x-layout title="Home">
     <h1>{{ $heading }}</h1>
 
     @if($movies->total())
         <p class="mb-4">Found {{ $movies->total() }} movies</p>
+
+        @if($showFilters)
+            <x-filters/>
+        @endif
 
         <x-movie-grid :movies="$movies" />
 

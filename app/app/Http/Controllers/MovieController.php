@@ -10,18 +10,33 @@ class MovieController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $director = $request->query('director');
+        $actor = $request->query('actor');
+        $startYear = $request->query('startYear');
+        $endYear = $request->query('endYear');
+
         // Get movies ordered by latest NZBs that are attached to them.
         $movies = Movie::whereHas('nzbs')
+            ->filterByDirector($director)
+            ->filterByActor($actor)
+            ->filterByYear($startYear, $endYear)
             ->withMax('nzbs', 'published_at')
             ->orderByDesc('nzbs_max_published_at')
             ->with(['nzbs' => fn ($query) => $query->latest(), 'directors', 'actors', 'genres'])
-            ->paginate(32);
+            ->paginate(32)
+            ->appends([
+                'director' => $director,
+                'actor'=> $actor,
+                'startYear' => $startYear,
+                'endYear' => $endYear,
+            ]);
 
         return view('welcome', [
             'movies' => $movies,
-            'heading' => 'Recent Movies'
+            'heading' => 'Recent Movies',
+            'showFilters' => true
         ]);
     }
 
