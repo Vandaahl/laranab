@@ -3,8 +3,10 @@
 use App\DTO\NzbCollection;
 use App\DTO\NzbData;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CreditController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\NzbController;
+use App\Http\Controllers\SearchController;
 use App\Models\ApiResponse;
 use App\Models\Credit;
 use App\Models\Movie;
@@ -21,6 +23,12 @@ Route::get('/categories/{category}', [CategoryController::class, 'show'])
 
 Route::get('/nzbs/{nzb}/nfo', [NzbController::class, 'nfo'])
     ->name('nzb.nfo');
+
+Route::get('credits/{credit}', [CreditController::class, 'show'])
+    ->name('credits.show');
+
+Route::get('/search', SearchController::class)
+    ->name('search');
 
 Route::get('/api/nzbs/test/fetch', function ()
 {
