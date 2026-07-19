@@ -41,14 +41,18 @@ class CategoryController extends Controller
         $movies = Movie::whereHas('nzbs', fn ($query) => $query->inCategory($category))
             ->withMax([
                 'nzbs as latest_category_nzb' => fn ($query) => $query->inCategory($category)
-            ], 'created_at')
+            ], 'published_at')
             ->orderByDesc('latest_category_nzb')
-            ->with([
-                'nzbs' => fn ($query) => $query->inCategory($category)->latest()
-            ])
+            ->with(['nzbs' => fn ($query) => $query->inCategory($category)->latest(), 'directors', 'actors', 'genres'])
+            ->paginate(32);
+
+        $categories = Category::whereNull('parent_id')
+            ->with('children')
             ->get();
 
-        return view('categories.show', compact('category', 'movies'));
+        $heading = "Browsing movies in the {$category->name} category";
+
+        return view('welcome', compact('category', 'movies', 'categories', 'heading'));
     }
 
     /**
