@@ -26,7 +26,8 @@ class MovieController extends Controller
 
         return view('welcome', [
             'categories' => $categories,
-            'movies' => $movies
+            'movies' => $movies,
+            'heading' => 'Recent Movies'
         ]);
     }
 
