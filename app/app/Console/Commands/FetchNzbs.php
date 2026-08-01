@@ -20,7 +20,7 @@ class FetchNzbs extends Command
     public function handle(NzbFetcher $nzbService): void
     {
         /** @var array $urls */
-        $urls = config('laranab.newznab_apis');
+        $urls = config('newznabber.newznab_apis');
 
         foreach ($urls as $url) {
             try {

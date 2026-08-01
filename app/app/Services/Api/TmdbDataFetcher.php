@@ -21,7 +21,7 @@ final class TmdbDataFetcher
     public function __construct(
     )
     {
-        $this->apiKey = config('laranab.tmdb_api_key');
+        $this->apiKey = config('newznabber.tmdb_api_key');
     }
 
     /**

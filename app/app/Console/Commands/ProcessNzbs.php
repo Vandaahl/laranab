@@ -70,12 +70,12 @@ class ProcessNzbs extends Command
                 }
 
                 if ($nzb->imdb === '0000000' || $nzb->imdb === null) {
-                    Log::channel('laranab')->warning("Skipping NZB {$nzb->title} because it is missing one or more imdb attributes.");
+                    Log::channel('newznabber')->warning("Skipping NZB {$nzb->title} because it is missing one or more imdb attributes.");
                     continue;
                 }
 
                 if (Nzb::where('guid', $nzb->guid)->exists()) {
-                    //Log::channel('laranab')->warning("Skipping NZB {'$nzb->title}' because it already exists in the database.");
+                    //Log::channel('newznabber')->warning("Skipping NZB {'$nzb->title}' because it already exists in the database.");
                     continue;
                 }
 
@@ -87,21 +87,21 @@ class ProcessNzbs extends Command
                         $this->cachedTmdbData[$nzb->imdb] = $tmdbData;
                     }
                 } catch (\Exception $e) {
-                    Log::channel('laranab')->warning($e->getMessage());
+                    Log::channel('newznabber')->warning($e->getMessage());
                     if (!in_array($key, $failedItems)) $failedItems[] = $key;
                     continue;
                 }
 
                 $preExistingMovie = Movie::where('imdb_id', $nzb->imdb)->where('tmdb_id', '!=', null)->first();
                 if ($preExistingMovie) {
-                    Log::channel('laranab')->warning("Skipping creating a movie for NZB {$tmdbData->title} because it already exists in the database.");
+                    Log::channel('newznabber')->warning("Skipping creating a movie for NZB {$tmdbData->title} because it already exists in the database.");
                     $movie = $preExistingMovie;
                 } else {
                     try {
                         $movie = $this->movieProcessor->createMovie($nzb, $tmdbData);
-                        Log::channel('laranab')->info("Movie {$tmdbData->title} ({$nzb->imdb}) created.");
+                        Log::channel('newznabber')->info("Movie {$tmdbData->title} ({$nzb->imdb}) created.");
                     } catch (ImageDownloadException $e) {
-                        Log::channel('laranab')->error("Failed to download image for movie {$tmdbData->title}. Error: {$e->getMessage()}");
+                        Log::channel('newznabber')->error("Failed to download image for movie {$tmdbData->title}. Error: {$e->getMessage()}");
                         // Continue even if image download fails, as it's not critical.
                     }
                 }
@@ -114,7 +114,7 @@ class ProcessNzbs extends Command
                         ->first();
 
                     if ($preExistingMovieWithTmdbId) {
-                        Log::channel('laranab')->info("Merging movie {$movie->imdb_id} into existing movie with tmdb_id {$tmdbData->tmdb_id}.");
+                        Log::channel('newznabber')->info("Merging movie {$movie->imdb_id} into existing movie with tmdb_id {$tmdbData->tmdb_id}.");
 
                         // If the current movie record was just created and doesn't have a tmdb_id yet, and it's different from
                         // the existing one, we should delete it to avoid orphaned records.
@@ -140,7 +140,7 @@ class ProcessNzbs extends Command
                 try {
                     $creditsData = $this->tmdbDataFetcher->getCredits($nzb);
                 } catch (\Exception $e) {
-                    Log::channel('laranab')->warning($e->getMessage());
+                    Log::channel('newznabber')->warning($e->getMessage());
                     if (!in_array($key, $failedItems)) $failedItems[] = $key;
                     continue;
                 }
@@ -161,7 +161,7 @@ class ProcessNzbs extends Command
                     'published_at' => (new \DateTime($nzb->pubDate))->setTimezone(new \DateTimeZone(config('app.timezone'))),
                 ]);
 
-                Log::channel('laranab')->info("Nzb '{$nzb->title}' for IMDB ID {$nzb->imdb} created.");
+                Log::channel('newznabber')->info("Nzb '{$nzb->title}' for IMDB ID {$nzb->imdb} created.");
 
                 $categoryIds = $this->nzbProcessor->getCategoryIds($nzb);
                 $nzbRecord->categories()->sync($categoryIds);
@@ -172,7 +172,7 @@ class ProcessNzbs extends Command
                 }
             }
 
-            Log::channel('laranab')->info("Done processing ApiResponse {$apiResponse->id}");
+            Log::channel('newznabber')->info("Done processing ApiResponse {$apiResponse->id}");
             $apiResponse->attempts++;
             if (count($failedItems)) {
                 $apiResponse->failed_items = $failedItems;

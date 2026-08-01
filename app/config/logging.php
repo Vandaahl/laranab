@@ -127,9 +127,9 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
-        'laranab' => [
+        'newznabber' => [
             'driver' => 'daily',
-            'path' => storage_path('logs/laranab.log'),
+            'path' => storage_path('logs/newznabber.log'),
             'level' => env('LOG_LEVEL', 'debug'),
         ],
     ],

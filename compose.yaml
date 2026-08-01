@@ -2,7 +2,8 @@
 
 services:
   app:
-    container_name: laranab-app
+    # If you change container_name, you must also change it in nginx.conf
+    container_name: newznabber-app
     image: cgr.dev/chainguard/laravel:latest-dev
     restart: unless-stopped
     volumes:
@@ -13,7 +14,7 @@ services:
       - wolfi
 
   nginx:
-    container_name: laranab-nginx
+    container_name: newznabber-nginx
     image: cgr.dev/chainguard/nginx
     restart: unless-stopped
     volumes:
@@ -25,7 +26,7 @@ services:
       - wolfi
 
   mariadb:
-    container_name: laranab-mariadb
+    container_name: newznabber-mariadb
     image: cgr.dev/chainguard/mariadb
     restart: unless-stopped
     volumes:
@@ -38,7 +39,7 @@ services:
       - wolfi
 
   scheduler:
-    container_name: laranab-scheduler
+    container_name: newznabber-scheduler
     image: cgr.dev/chainguard/laravel:latest-dev
     restart: unless-stopped
     volumes:
