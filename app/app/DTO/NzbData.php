@@ -28,12 +28,12 @@ final readonly class NzbData
 
         return new self(
             title: $data['title'],
-            imdb: 'tt' . $attributes['imdb'] ?? null,
+            imdb: isset($attributes['imdb']) && str_starts_with($attributes['imdb'], 'tt') ? $attributes['imdb'] : 'tt' . $attributes['imdb'],
             imdbTitle: $attributes['imdbtitle'] ?? null,
             size: $attributes['size'] ?? null,
             pubDate: $data['pubDate'] ?? null,
             categories: $attributes['categories'],
-            guid: $attributes['guid'],
+            guid: $data['guid'],
             imdbYear: isset($attributes['imdbyear']) ? (int) $attributes['imdbyear'] : null,
             imdbScore: isset($attributes['imdbscore']) ? (float) $attributes['imdbscore'] : null,
             coverUrl: $attributes['coverurl'] ?? null,

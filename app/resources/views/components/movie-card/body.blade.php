@@ -29,7 +29,7 @@
     <li>Genres: {{ $movie->genres->pluck('name')->join(', ') }}</li>
     <li>Runtime: {{ $runtimeDisplay }}</li>
     <li class="mt-1">
-        <a href="https://www.imdb.com/title/{{ $movie->imdb_id }}" target="_blank" rel="noopener" class="btn btn-xs">IMDb {{ $movie->imdb_score }}</a>
+        <a href="https://www.imdb.com/title/{{ $movie->imdb_id }}" target="_blank" rel="noopener" class="btn btn-xs">IMDb</a>
         <a href="https://www.themoviedb.org/movie/{{ $movie->tmdb_id }}" target="_blank" rel="noopener" class="btn btn-xs">TMDB</a>
     </li>
 </ul>

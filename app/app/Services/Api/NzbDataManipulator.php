@@ -9,22 +9,16 @@ class NzbDataManipulator
      *
      * [
      *      [
-     *          "@attributes" => [
-     *              "name" => "category",
-     *              "value" => "2000"
-     *          ]
+ *              "name" => "category",
+ *              "value" => "2000"
      *      ],
      *      [
-     *          "@attributes" => [
-     *              "name" => "category",
-     *              "value" => "2040"
-     *          ]
+ *              "name" => "category",
+ *              "value" => "2040"
      *      ],
      *      [
-     *          "@attributes" => [
-     *              "name" => "imdb",
-     *              "value" => "34906817"
-     *          ]
+ *              "name" => "imdb",
+ *              "value" => "34906817"
      *      ]
      * ]
      *
@@ -43,8 +37,8 @@ class NzbDataManipulator
         /** @var array $attr */
         $attr =  collect($attributes)
             ->reduce(function ($carry, $item) {
-                $name = $item['@attributes']['name'];
-                $value = $item['@attributes']['value'];
+                $name = $item['name'];
+                $value = $item['value'];
 
                 if ($name === 'category') {
                     $carry['categories'][] = $value;
@@ -62,7 +56,7 @@ class NzbDataManipulator
      * Filters out items from the given array where an attribute matches the provided name and value.
      *
      * Each item in the array is expected to contain an "attr" key with a list of attributes, each
-     * in this format: ["@attributes" => ["name" => "category", "value" => "2000"]].
+     * in this format: ["name" => "category", "value" => "2000"].
      * The filtering is based on the condition that, within the "attr" list, an attribute with the
      * specified name and value exists.
      *
@@ -77,8 +71,8 @@ class NzbDataManipulator
             ->reject(function ($item) use ($name, $value) {
                 return collect($item['attr'] ?? [])
                     ->contains(function ($attr) use ($name, $value) {
-                        return $attr['@attributes']['name'] === $name
-                            && $attr['@attributes']['value'] === $value;
+                        return $attr['name'] === $name
+                            && $attr['value'] === $value;
                     });
             })
         ->values()
@@ -89,7 +83,7 @@ class NzbDataManipulator
      * Remove items from an array that are missing a specific attribute and keep the rest.
      *
      * Each item in the array is expected to contain an "attr" key with a list of attributes, each
-     * in this format: ["@attributes" => ["name" => "category", "value" => "2000"]].
+     * in this format: ["name" => "category", "value" => "2000"].
      * The filtering is based on the condition that, within the "attr" list, an attribute with the
      * specified name is missing.
      *
@@ -102,7 +96,9 @@ class NzbDataManipulator
         return collect($items)
             ->filter(function ($item) use ($names) {
                 $itemAttributes = collect($item['attr'] ?? [])
-                    ->map(fn($attr) => $attr['@attributes']['name'] ?? null)
+                    ->map(fn($attr) =>
+                        $attr['name'] ?? null
+                    )
                     ->all();
 
                 foreach ($names as $name) {

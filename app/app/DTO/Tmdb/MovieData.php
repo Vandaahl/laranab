@@ -2,6 +2,8 @@
 
 namespace App\DTO\Tmdb;
 
+use DateTime;
+
 final readonly class MovieData
 {
     public function __construct(
@@ -15,6 +17,8 @@ final readonly class MovieData
         public int $runtime,
         public array $origin_country,
         public array $production_countries,
+        public int $year,
+        public ?float $vote_average,
     ) {}
 
     public static function fromArray(array $data): self
@@ -30,6 +34,10 @@ final readonly class MovieData
             runtime: $data['runtime'],
             origin_country: $data['origin_country'],
             production_countries: $data['production_countries'],
+            year: (isset($data['release_date']) && $data['release_date'] !== '')
+                ? (int) (new DateTime($data['release_date']))->format('Y')
+                : 1,
+            vote_average: isset($data['vote_average']) ? (float) $data['vote_average'] : null,
         );
     }
 
@@ -46,6 +54,8 @@ final readonly class MovieData
             'runtime' => $this->runtime,
             'origin_country' => $this->origin_country,
             'production_countries' => $this->production_countries,
+            'year' => $this->year,
+            'vote_average' => $this->vote_average,
         ];
     }
 }

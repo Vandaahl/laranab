@@ -31,6 +31,8 @@ class ProcessNzbs extends Command
 
     private const int MAX_ATTEMPTS = 3;
 
+    private array $cachedTmdbData;
+
     public function __construct(
         private readonly MovieProcessor $movieProcessor,
         private readonly TmdbDataFetcher $tmdbDataFetcher,
@@ -63,51 +65,56 @@ class ProcessNzbs extends Command
 
             foreach ($collection as $key => $nzb) {
                 // This NZB has already been processed.
-                if ($apiResponse->attempts !== null && $apiResponse->attempts >= 1 && !in_array($key, $failedItems)) {
+                if ($apiResponse->attempts >= 1 && !in_array($key, $failedItems)) {
                     continue;
                 }
 
-                if ($nzb->imdb === '0000000' || $nzb->imdb === null || $nzb->imdbTitle === null || $nzb->imdbYear === null) {
+                if ($nzb->imdb === '0000000' || $nzb->imdb === null) {
                     Log::channel('laranab')->warning("Skipping NZB {$nzb->title} because it is missing one or more imdb attributes.");
                     continue;
                 }
 
                 if (Nzb::where('guid', $nzb->guid)->exists()) {
-                    Log::channel('laranab')->warning("Skipping NZB {'$nzb->title}' because it already exists in the database.");
+                    //Log::channel('laranab')->warning("Skipping NZB {'$nzb->title}' because it already exists in the database.");
                     continue;
                 }
 
-                $preExistingMovie = Movie::where('imdb_id', $nzb->imdb)->where('tmdb_id', '!=', null)->first();
-                if ($preExistingMovie) {
-                    Log::channel('laranab')->warning("Skipping creating a movie for NZB {$nzb->title} because it already exists in the database.");
-                    $movie = $preExistingMovie;
-                } else {
-                    try {
-                        $movie = $this->movieProcessor->createMovie($nzb);
-                        Log::channel('laranab')->info("Movie {$nzb->imdbTitle} ({$nzb->imdb}) created.");
-                    } catch (ImageDownloadException $e) {
-                        Log::channel('laranab')->error("Failed to download image for movie {$nzb->imdbTitle}. Error: {$e->getMessage()}");
-                        // Continue even if image download fails, as it's not critical.
-                    }
-                }
-
                 try {
-                    $movieData = $this->tmdbDataFetcher->getMovie($nzb);
+                    if (isset($this->cachedTmdbData[$nzb->imdb])) {
+                        $tmdbData = $this->cachedTmdbData[$nzb->imdb];
+                    } else {
+                        $tmdbData = $this->tmdbDataFetcher->getMovie($nzb);
+                        $this->cachedTmdbData[$nzb->imdb] = $tmdbData;
+                    }
                 } catch (\Exception $e) {
                     Log::channel('laranab')->warning($e->getMessage());
                     if (!in_array($key, $failedItems)) $failedItems[] = $key;
                     continue;
                 }
 
+                $preExistingMovie = Movie::where('imdb_id', $nzb->imdb)->where('tmdb_id', '!=', null)->first();
+                if ($preExistingMovie) {
+                    Log::channel('laranab')->warning("Skipping creating a movie for NZB {$tmdbData->title} because it already exists in the database.");
+                    $movie = $preExistingMovie;
+                } else {
+                    try {
+                        $movie = $this->movieProcessor->createMovie($nzb, $tmdbData);
+                        Log::channel('laranab')->info("Movie {$tmdbData->title} ({$nzb->imdb}) created.");
+                    } catch (ImageDownloadException $e) {
+                        Log::channel('laranab')->error("Failed to download image for movie {$tmdbData->title}. Error: {$e->getMessage()}");
+                        // Continue even if image download fails, as it's not critical.
+                    }
+                }
+
                 if (isset($movie)) {
                     // Check if another movie record already has this tmdb_id. If so, use that movie record instead to avoid a
                     // duplicate tmdb_id key error when updating the movie record.
-                    $preExistingMovieWithTmdbId = Movie::where('tmdb_id', $movieData->tmdb_id)
+                    $preExistingMovieWithTmdbId = Movie::where('tmdb_id', $tmdbData->tmdb_id)
                         ->where('id', '!=', $movie->id)
                         ->first();
 
                     if ($preExistingMovieWithTmdbId) {
-                        Log::channel('laranab')->info("Merging movie {$movie->imdb_id} into existing movie with tmdb_id {$movieData->tmdb_id}.");
+                        Log::channel('laranab')->info("Merging movie {$movie->imdb_id} into existing movie with tmdb_id {$tmdbData->tmdb_id}.");
 
                         // If the current movie record was just created and doesn't have a tmdb_id yet, and it's different from
                         // the existing one, we should delete it to avoid orphaned records.
@@ -119,15 +126,15 @@ class ProcessNzbs extends Command
                     }
 
                     $movie->update([
-                        'tmdb_id' => $movieData->tmdb_id,
-                        'original_title' => $movieData->original_title,
-                        'original_language' => $movieData->original_language,
-                        'overview' => $movieData->overview,
-                        'runtime' => $movieData->runtime,
+                        'tmdb_id' => $tmdbData->tmdb_id,
+                        'original_title' => $tmdbData->original_title,
+                        'original_language' => $tmdbData->original_language,
+                        'overview' => $tmdbData->overview,
+                        'runtime' => $tmdbData->runtime,
                     ]);
 
-                    $this->movieProcessor->attachProductionCountriesToMovie($movieData, $movie);
-                    $this->movieProcessor->attachGenresToMovie($movieData, $movie);
+                    $this->movieProcessor->attachProductionCountriesToMovie($tmdbData, $movie);
+                    $this->movieProcessor->attachGenresToMovie($tmdbData, $movie);
                 }
 
                 try {

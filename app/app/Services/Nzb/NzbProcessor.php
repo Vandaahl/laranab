@@ -27,11 +27,10 @@ final readonly class NzbProcessor
         foreach ($nzb->categories as $key => $category) {
             $previousCat = $key > 0 ? $categoryRecordIds[$key - 1] : null;
             $name = self::NZB_CATEGORIES[$category] ?? 'unknown';
-            $cat = Category::firstOrCreate([
-                'external_id' => $category,
-                'parent_id' => $previousCat,
-                'name' => $name
-            ]);
+            $cat = Category::firstOrCreate(
+                ['external_id' => $category],
+                ['parent_id' => $previousCat, 'name' => $name]
+            );
             $categoryRecordIds[] = $cat->id;
         }
 

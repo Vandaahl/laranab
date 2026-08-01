@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\DTO\Tmdb\CastMemberData;
 use App\DTO\Tmdb\CreditsData;
 use App\DTO\Tmdb\CrewMemberData;
+use App\DTO\Tmdb\MovieData;
 use App\Models\Movie;
 use App\Services\Api\ImageDownloader;
 use App\Services\Movie\MovieProcessor;
@@ -70,5 +71,73 @@ class MovieProcessorTest extends TestCase
         $this->assertCount(2, $movie->credits, 'Should have 2 credit entries (one for Director, one for Actor)');
         $this->assertTrue($movie->credits->contains(fn ($credit) => $credit->pivot->job === 'Director'), 'Missing Director role');
         $this->assertTrue($movie->credits->contains(fn ($credit) => $credit->pivot->job === 'Actor'), 'Missing Actor role');
+    }
+
+    public function test_it_does_not_fail_when_attaching_duplicate_countries(): void
+    {
+        $imageDownloader = $this->createMock(ImageDownloader::class);
+        $processor = new MovieProcessor($imageDownloader);
+
+        $movie = Movie::create([
+            'title' => 'Test Movie',
+            'imdb_id' => 'tt1234567',
+            'year' => 2024,
+            'imdb_score' => 8.5,
+        ]);
+
+        $movieData = new MovieData(
+            genres: [],
+            tmdb_id: 1,
+            imdb_id: 'tt1234567',
+            original_language: 'en',
+            title: 'Test Movie',
+            original_title: 'Test Movie',
+            overview: 'Overview',
+            runtime: 120,
+            origin_country: ['US'],
+            production_countries: [
+                ['iso_3166_1' => 'US', 'name' => 'United States of America'],
+                ['iso_3166_1' => 'US', 'name' => 'United States of America'],
+            ],
+            year: 2024
+        );
+
+        $processor->attachProductionCountriesToMovie($movieData, $movie);
+
+        $this->assertCount(1, $movie->countries()->get());
+    }
+
+    public function test_it_does_not_fail_when_attaching_duplicate_genres(): void
+    {
+        $imageDownloader = $this->createMock(ImageDownloader::class);
+        $processor = new MovieProcessor($imageDownloader);
+
+        $movie = Movie::create([
+            'title' => 'Test Movie',
+            'imdb_id' => 'tt1234567',
+            'year' => 2024,
+            'imdb_score' => 8.5,
+        ]);
+
+        $movieData = new MovieData(
+            genres: [
+                ['id' => 28, 'name' => 'Action'],
+                ['id' => 28, 'name' => 'Action'],
+            ],
+            tmdb_id: 1,
+            imdb_id: 'tt1234567',
+            original_language: 'en',
+            title: 'Test Movie',
+            original_title: 'Test Movie',
+            overview: 'Overview',
+            runtime: 120,
+            origin_country: ['US'],
+            production_countries: [],
+            year: 2024
+        );
+
+        $processor->attachGenresToMovie($movieData, $movie);
+
+        $this->assertCount(1, $movie->genres()->get());
     }
 }

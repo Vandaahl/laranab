@@ -52,58 +52,12 @@ Route::get('/api/nzbs/test/filter', function () {
     dd(count($items) . ' items after filtering out items that are missing imdb attribute');
 });
 
-Route::get('/create-movie', function (ImageDownloader $imageDownloader)
-{
-    $apiResponse = ApiResponse::latest()->first();
-    $collection = NzbCollection::fromArray($apiResponse->payload);
-    $movie = $collection->random();
-
-    $posterUrl = $movie->coverUrl;
-    if ($posterUrl) {
-        $name = $movie->imdb . '-' . $movie->imdbTitle;
-        try {
-            $filename = $imageDownloader->processUrl($posterUrl, $name, 'posters');
-        } catch (ImageDownloadException $e) {
-            Log::error("Failed to download image for movie {$movie->title}. Error: {$e->getMessage()}");
-        }
-    }
-
-    $newMovie = Movie::updateOrCreate([
-        'title' => $movie->imdbTitle,
-        'imdb_id' => $movie->imdb,
-        'year' => $movie->imdbYear,
-        'poster' => $filename ?? null,
-    ]);
-
-    Log::info("Movie {$movie->imdbTitle} created or updated.");
-
-    dd($newMovie);
-});
-
-Route::get('/update-movie', function ()
-{
-    $movie = Movie::where('imdb_id', '=', 'tt0069735')->first();
-    $director = Credit::updateOrCreate([
-        'name' => 'Jesús García de Dueñas',
-        'tmdb_id' => '1031910',
-    ]);
-    $actor = Credit::updateOrCreate([
-        'name' => 'Lola Flores',
-        'tmdb_id' => '107271',
-    ]);
-    $movie->credits()->syncWithoutDetaching([
-        $director->id => ['job' => 'Director'],
-        $actor->id => ['job' => 'Actor'],
-    ]);
-    dd($movie->toArray());
-});
-
-Route::get('/api/tmdb/test/process', function ()
+Route::get('/api/nzbs/test/process', function ()
 {
     dd(Artisan::call('app:process-nzbs'));
 });
 
-Route::get('/api/nzbs/test/process', function()
+Route::get('/api/nzbs/test/list', function()
 {
     $queue = ApiResponse::where('processed_at', '=', null)->where('attempts', '<', 3)->get();
     dd($queue);

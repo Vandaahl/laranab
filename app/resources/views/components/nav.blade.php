@@ -1,6 +1,6 @@
 @props(['categories'])
 
-<div class="navbar bg-base-100 shadow-sm">
+<div class="navbar bg-error shadow-sm">
     <div class="navbar-start">
         <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
@@ -11,7 +11,7 @@
             </div>
             <ul
                 tabindex="-1"
-                class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
+                class="menu menu-sm dropdown-content bg-error rounded-box z-1 mt-3 w-52 p-2 shadow">
                 <li><a href="{{ route('home') }}">Homepage</a></li>
                 @foreach($categories as $category)
                     <li>

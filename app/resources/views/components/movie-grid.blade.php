@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Collection;
         @php
             $interval = CarbonInterval::minutes($movie->runtime)->cascade();
             $runtimeDisplay = $interval->hours . 'h ' . $interval->minutes . 'm'; // "1h 30m"
-            $score = round($movie->imdb_score * 10);
+            $score = round($movie->tmdb_score * 10);
             $colorClasses = match(true) {
                 $score > 69 => ['bg' => 'bg-success', 'text' => 'text-success-content', 'border' => 'border-success'],
                 $score < 70 && $score > 49 => ['bg' => 'bg-warning', 'text' => 'text-warning-content', 'border' => 'border-warning'],

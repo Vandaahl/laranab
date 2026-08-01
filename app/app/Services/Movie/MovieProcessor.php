@@ -9,6 +9,7 @@ use App\Models\Country;
 use App\Models\Credit;
 use App\Models\Genre;
 use App\Models\Movie;
+use App\Services\Api\Exceptions\ImageDownloadException;
 use App\Services\Api\ImageDownloader;
 use Illuminate\Support\Facades\DB;
 
@@ -23,23 +24,26 @@ final readonly class MovieProcessor
      * Creates a new movie record in the database using the provided NZB data.
      *
      * @param NzbData $nzb The NZB data containing movie details.
+     * @param MovieData $movieData Movie data from TMDB.
      * @return Movie The created movie instance.
-     * @thows ImageDownloadException If the poster image download fails.
+     * @throws ImageDownloadException If the poster image download fails.
      */
-    public function createMovie(NzbData $nzb): Movie
+    public function createMovie(NzbData $nzb, MovieData $movieData): Movie
     {
         $posterUrl = $nzb->coverUrl;
         if ($posterUrl) {
-            $name = $nzb->imdb . '-' . $nzb->imdbTitle;
+            $name = $nzb->imdb . '-' . $movieData->title;
             $filename = $this->imageDownloader->processUrl($posterUrl, $name, 'posters');
         }
 
         return Movie::firstOrCreate([
-            'title' => $nzb->imdbTitle,
             'imdb_id' => $nzb->imdb,
-            'year' => $nzb->imdbYear,
+        ], [
+            'title' => $movieData->title,
+            'year' => $movieData->year,
             'poster' => $filename ?? null,
             'imdb_score' => $nzb->imdbScore,
+            'tmdb_score' => $movieData->vote_average,
         ]);
     }
 
@@ -108,14 +112,16 @@ final readonly class MovieProcessor
             return;
         }
 
+        $countryIds = [];
         foreach ($movieData->production_countries as $productionCountry) {
             $country = Country::updateOrCreate([
                 'iso_3166_1' => $productionCountry['iso_3166_1'],
             ], [
                 'name' => $productionCountry['name'],
             ]);
-            $movie->countries()->syncWithoutDetaching($country->id);
+            $countryIds[] = $country->id;
         }
+        $movie->countries()->syncWithoutDetaching(array_unique($countryIds));
     }
 
     /**
@@ -132,13 +138,15 @@ final readonly class MovieProcessor
             return;
         }
 
+        $genreIds = [];
         foreach ($movieData->genres as $genre) {
             $genre = Genre::updateOrCreate([
                 'tmdb_id' => $genre['id'],
             ], [
                 'name' => $genre['name'],
             ]);
-            $movie->genres()->syncWithoutDetaching($genre->id);
+            $genreIds[] = $genre->id;
         }
+        $movie->genres()->syncWithoutDetaching(array_unique($genreIds));
     }
 }

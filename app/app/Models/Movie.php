@@ -9,12 +9,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
 
-#[Fillable(['imdb_id', 'tmdb_id', 'title', 'original_title', 'year', 'poster', 'overview', 'imdb_score', 'runtime', 'original_language'])]
+#[Fillable(['imdb_id', 'tmdb_id', 'title', 'original_title', 'year', 'poster', 'overview', 'imdb_score', 'tmdb_score', 'runtime', 'original_language'])]
 class Movie extends Model
 {
     public function nzbs(): HasMany
     {
-        return $this->hasMany(Nzb::class);
+        return $this->hasMany(Nzb::class)->orderByDesc('published_at');
     }
 
     public function credits(): BelongsToMany
