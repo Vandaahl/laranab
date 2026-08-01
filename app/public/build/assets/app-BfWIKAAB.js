@@ -1,0 +1,1 @@
+function e(){let e=document.querySelector(`#masonry-grid`);if(e){let t=new Masonry(e,{itemSelector:`.masonry-item`,percentPosition:!0,columnWidth:`.masonry-item`}),n=imagesLoaded(e);n.on(`progress`,function(){t.layout()}),n.on(`always`,function(){t.layout()})}}document.addEventListener(`DOMContentLoaded`,e);
