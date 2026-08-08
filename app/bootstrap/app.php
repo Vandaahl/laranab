@@ -14,7 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $trustedProxies = array_filter(
             array_map(
                 'trim',
-                explode(',', getenv('TRUSTED_PROXIES') ?: '')
+                explode(',', getenv('APP_TRUSTED_PROXIES') ?: '')
             )
         );
 
