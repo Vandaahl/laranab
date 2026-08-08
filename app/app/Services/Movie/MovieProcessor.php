@@ -12,6 +12,7 @@ use App\Models\Movie;
 use App\Services\Api\Exceptions\ImageDownloadException;
 use App\Services\Api\ImageDownloader;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 final readonly class MovieProcessor
 {
@@ -26,14 +27,17 @@ final readonly class MovieProcessor
      * @param NzbData $nzb The NZB data containing movie details.
      * @param MovieData $movieData Movie data from TMDB.
      * @return Movie The created movie instance.
-     * @throws ImageDownloadException If the poster image download fails.
      */
     public function createMovie(NzbData $nzb, MovieData $movieData): Movie
     {
         $posterUrl = $nzb->coverUrl;
         if ($posterUrl) {
             $name = $nzb->imdb . '-' . $movieData->title;
-            $filename = $this->imageDownloader->processUrl($posterUrl, $name, 'posters');
+            try {
+                $filename = $this->imageDownloader->processUrl($posterUrl, $name, 'posters');
+            } catch (ImageDownloadException $e) {
+                Log::channel('newznabber')->error("Failed to download image for movie {$movieData->title}. Error: {$e->getMessage()}");
+            }
         }
 
         return Movie::firstOrCreate([
