@@ -88,4 +88,15 @@ class Movie extends Model
 
         return $query->whereBetween('year', [$startYear, $endYear]);
     }
+
+    /**
+     * Scope a query to only include movies from a certain decade.
+     */
+    #[Scope]
+    protected function filterByDecade(Builder $query, ?int $decade = null): Builder
+    {
+        if ($decade === null) return $query;
+
+        return $query->whereBetween('year', [$decade, $decade + 9]);
+    }
 }

@@ -6,6 +6,8 @@
         $years[] = $i;
     }
     $years = array_reverse($years);
+    $currentDecade = intdiv(now()->year, 10) * 10;
+    $decades = array_reverse(range(1900, $currentDecade, 10));
 @endphp
 
 <form method="GET" action="{{ url()->current() }}" class="py-4 flex gap-5 flex-col md:flex-row">
@@ -40,6 +42,17 @@
             @foreach($years as $y)
                 <option value="{{ $y }}" @selected((string)request('endYear') === (string)$y)>
                     {{ $y }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+
+    <div class="flex flex-nowrap gap-2">
+        <select name="decade" class="select w-auto">
+            <option value="">All decades</option>
+            @foreach($decades as $d)
+                <option value="{{ $d }}" @selected((string)request('decade') === (string)$d)>
+                    {{ $d }}s
                 </option>
             @endforeach
         </select>

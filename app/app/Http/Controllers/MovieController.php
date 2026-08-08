@@ -12,11 +12,18 @@ class MovieController extends Controller
      */
     public function index(Request $request)
     {
+        // Can't filter by decade and year at the same time.
+        if ($request->filled('decade')) {
+            $request->query->remove('startYear');
+            $request->query->remove('endYear');
+        }
+
         $validated = $request->validate([
             'director' => ['nullable', 'string', 'max:255'],
             'actor' => ['nullable', 'string', 'max:255'],
             'startYear' => ['nullable', 'integer'],
             'endYear' => ['nullable', 'integer'],
+            'decade' => ['nullable', 'integer', 'min:1900', 'multiple_of:10'],
         ]);
 
         // Get movies ordered by latest NZBs that are attached to them.
@@ -24,6 +31,7 @@ class MovieController extends Controller
             ->filterByDirector($validated['director'] ?? null)
             ->filterByActor($validated['actor'] ?? null)
             ->filterByYear($validated['startYear'] ?? null, $validated['endYear'] ?? null)
+            ->filterByDecade($validated['decade'] ?? null)
             ->withMax('nzbs', 'published_at')
             ->orderByDesc('nzbs_max_published_at')
             ->with(['nzbs' => fn ($query) => $query->latest(), 'directors', 'actors', 'genres'])
